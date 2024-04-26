@@ -25,9 +25,11 @@ public:
     }
     void lockChopstick()
     {
+        lock_guard<mutex> lock(chopTex);
     }
     void unlockChopstick()
     {
+        lock_guard<mutex> unlock(chopTex);
     }
 };
 
@@ -46,31 +48,25 @@ public:
     }
     void putDownChopstick(int id)
     {
-        // maybe use these functions vvv themselves rather than `putDownChopstick` and `pickUpChopstick`
-        //       chopsticks(id).unlockChopstick();
+        chopsticks[id].unlockChopstick();
     }
     void pickUpChopstick(int id)
     {
-        // work with mutex in chopstick
-        // chopsticks(id).unlockChopstick();
+        chopsticks[id].lockChopstick();
     }
 
     void getChopsticks(int id)
     {
-        // random selection? (left or right first?
-        if (1)
-            pickUpChopstick(id);
+        pickUpChopstick(id);
         pickUpChopstick((id + 1) % NUMBER_OF_PHILOSPHERS);
     }
 
     void releaseChopsticks(int id)
     {
-        // random selection? (left or right first?
-        if (1)
-            putDownChopstick(id);
+        putDownChopstick(id);
         putDownChopstick((id + 1) % NUMBER_OF_PHILOSPHERS);
     }
-    bool setStatus(bool status)
+    void setStatus(bool status)
     {
         this->status = status;
     }
@@ -78,9 +74,17 @@ public:
     {
         return this->status;
     }
+    void setDining(bool dining)
+    {
+        this->dining = dining;
+    }
+    bool getDining()
+    {
+        return this->dining;
+    }
 };
 
-class Philosopher : thread
+class Philosopher
 {
 private:
     string name;
@@ -113,30 +117,29 @@ public:
         while (syncro.getStatus() == true)
         {
 
-            cout << " start eating." << endl;
             usleep(50000);
-            cout << " finished eating." << endl;
-            ;
+
             thinking();
+            cout << this->name << " is going to start eating." << endl;
             eating();
+            cout << this->name << " has finished eating." << endl;
         }
     };
 
     void thinking()
     {
-        cout << this->id << " thinking." << endl;
+        cout << this->name << " is thinking." << endl;
         usleep(50000);
-        // time hungry
         syncro.getChopsticks(this->id);
-        // time hungry
     }
 
     void eating()
     {
-        cout << this->id << " is eating." << endl;
-        // time eating
+        cout << this->name << " is eating." << endl;
+        syncro.setDining(true);
         usleep(50000);
-        // time eating
+        syncro.releaseChopsticks(this->id);
+        syncro.setDining(false);
     }
 };
 
@@ -154,7 +157,7 @@ void dine()
         philosophers[i] = new Philosopher(nameArray[i], syncro, i);
     }
     syncro.setStatus(true);
-    usleep(100000);
+    usleep(10000000);
     syncro.setStatus(false);
 }
 
