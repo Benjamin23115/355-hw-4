@@ -13,6 +13,7 @@ const int LOCKED = 1;
 const int NUMBER_OF_PHILOSPHERS = 5;
 static int TOTAL_CHOPSTICKS = 0;
 
+// Hi Luis, this is the dead lock version
 class Chopstick
 {
 private:
@@ -21,7 +22,13 @@ private:
     int id;
 
 public:
-    Chopstick(int id) : id(id) {}
+    Chopstick()
+    {
+    }
+    Chopstick(int id)
+    {
+        this->id = id;
+    }
     void lockChopstick()
     {
         chopTex.lock();
@@ -96,15 +103,18 @@ private:
     int state;
     int id;
     string name;
-    Chopstick *left, *right;
     double thinkTime;
     thread mainThread;
     mutex outputMutex;
+    Chopstick *left, *right;
     Syncro &syncro;
     int hunger;
 
 public:
-    Philosopher(string name, Syncro &t, int id, Chopstick &leftChopstick, Chopstick &rightChopstick) : mainThread(&Philosopher::run, this), syncro(t)
+    Philosopher(string name, Syncro &t, int id, Chopstick &leftChopstick,
+                Chopstick &rightChopstick) : mainThread(&Philosopher::run,
+                                                        this),
+                                             syncro(t)
     {
         this->name = name;
         this->id = id;
@@ -129,11 +139,23 @@ public:
         {
             usleep(50000);
             thinking();
-            cout << "Philosopher " << this->id << " is hungy." << endl;
+            checkHunger();
             eating();
-            cout << "Philosopher " << this->id << " has finished eating." << endl;
         }
     };
+
+    void checkHunger()
+    {
+        if (this->thinkTime > 5.0)
+        {
+            this->hunger = 1;
+            cout << "Philosopher " << this->id << " is hungry." << endl;
+        }
+        else
+        {
+            this->hunger = 0;
+        }
+    }
 
     void thinking()
     {
@@ -154,6 +176,8 @@ public:
 
     void eating()
     {
+        cout << "Philosopher " << this->id << " is hungy." << endl;
+
         cout << "Philosopher " << this->id << " is eating." << endl;
         syncro.setDining(true);
         usleep(50000);
@@ -162,6 +186,7 @@ public:
             syncro.releaseChopsticks(this->id);
         }
         syncro.setDining(false);
+        cout << "Philosopher " << this->id << " has finished eating." << endl;
     }
 };
 
@@ -170,22 +195,20 @@ const string nameArray[] =
      "Mace Windu", "Ezra", "Palpatine", "Anakin", "Kylo Ren", "Dooku",
      "Kit Fitso", "Luminara", "Plo Koon", "Revan", "Thrawn", "Zeb", "Sabine"};
 
-void main()
+int main()
 {
     Syncro syncro;
+    Chopstick *chopsticks[NUMBER_OF_PHILOSPHERS];
     Philosopher *philosophers[NUMBER_OF_PHILOSPHERS];
-    Chopstick chopsticks[NUMBER_OF_PHILOSPHERS];
     int lastPhilosopher = NUMBER_OF_PHILOSPHERS - 1;
 
     // Declare Chopsticks and Philosophers
-    for (int i = 0; i < lastPhilosopher; i++)
+    for (int i = 0; i < NUMBER_OF_PHILOSPHERS; i++)
     {
-        chopsticks[i] = Chopstick(i);
-        philosophers[i] = new Philosopher(nameArray[i], syncro, i, chopsticks[i], chopsticks[i + 1]);
+        chopsticks[i] = new Chopstick(i);
+        philosophers[i] = new Philosopher(nameArray[i], syncro, i, *chopsticks[i],
+                            *chopsticks[(i + 1) % NUMBER_OF_PHILOSPHERS]);
     }
-
-    // Set final philosopher's chopstick to loop back to initial chopstick
-    philosophers[lastPhilosopher] = new Philosopher(nameArray[lastPhilosopher], syncro, lastPhilosopher, chopsticks[lastPhilosopher], chopsticks[0]);
 
     // Set syncro to true to start all philosophers
     syncro.setStatus(true);
