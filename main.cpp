@@ -20,7 +20,6 @@ private:
     mutex chopTex;
     int status;
     int id;
-
 public:
     Chopstick()
     {
@@ -48,7 +47,6 @@ private:
     Chopstick chopsticks[NUMBER_OF_PHILOSPHERS]; // Array of Chopsticks
     bool status = false;
     mutex statusMutex;
-
 public:
     Syncro()
     {
@@ -62,24 +60,25 @@ public:
     {
         chopsticks[id].lockChopstick();
     }
-
     void getChopsticks(int id)
     {
         pickUpChopstick(id);
         pickUpChopstick((id + 1) % NUMBER_OF_PHILOSPHERS);
     }
-
+    // command to
     void releaseChopsticks(int id)
     {
         putDownChopstick(id);
         putDownChopstick((id + 1) % NUMBER_OF_PHILOSPHERS);
     }
+    // Sends Activation signal to all philosophers
     void setStatus(bool status)
     {
         statusMutex.lock();
         this->status = status;
         statusMutex.unlock();
     }
+    // Check condition of Status
     bool getStatus()
     {
         statusMutex.lock();
@@ -100,6 +99,7 @@ public:
 class Philosopher
 {
 private:
+
     int state;
     int id;
     string name;
@@ -112,9 +112,7 @@ private:
 
 public:
     Philosopher(string name, Syncro &t, int id, Chopstick &leftChopstick,
-                Chopstick &rightChopstick) : mainThread(&Philosopher::run,
-                                                        this),
-                                             syncro(t)
+                Chopstick &rightChopstick) : mainThread(&Philosopher::run, this), syncro(t)
     {
         this->name = name;
         this->id = id;
@@ -169,6 +167,7 @@ public:
         this->thinkTime += this->thinkTime + difftime(time(0), start);
     }
 
+
     int coinToss()
     {
         return rand() % 2 == 0 ? 0 : 1;
@@ -176,10 +175,8 @@ public:
 
     void eating()
     {
-        cout << "Philosopher " << this->id << " is hungy." << endl;
-
-        cout << "Philosopher " << this->id << " is eating." << endl;
         syncro.setDining(true);
+        cout << "Philosopher " << this->id << " is eating." << endl;
         usleep(50000);
         if (this->coinToss() == 1)
         {
