@@ -95,7 +95,8 @@ private:
     Syncro &syncro;
 
 public:
-    Philosopher(string name, Syncro &t, int id) : mainThread(&Philosopher::run, this), syncro(t)
+    Philosopher(string name, Syncro &t,
+                int id) : mainThread(&Philosopher::run, this), syncro(t)
     {
         this->name = name;
         this->id = id;
@@ -120,32 +121,45 @@ public:
             usleep(50000);
 
             thinking();
-            cout << this->name << " is going to start eating." << endl;
+            cout << "Philosopher " << this->id << " is going to start eating." << endl;
             eating();
-            cout << this->name << " has finished eating." << endl;
+            cout << "Philosopher " << this->id << " has finished eating." << endl;
         }
     };
 
     void thinking()
     {
-        cout << this->name << " is thinking." << endl;
+        time_t start = time(0);
+        cout << "Philosopher " << this->id << " is thinking." << endl;
         usleep(50000);
-        syncro.getChopsticks(this->id);
+        if (this->coinToss() == 1)
+        {
+            syncro.getChopsticks(this->id);
+        }
+        this->thinkTime += this->thinkTime + difftime(time(0), start);
+    }
+    int coinToss()
+    {
+        return rand() % 2 + 1;
     }
 
     void eating()
     {
-        cout << this->name << " is eating." << endl;
+        cout << "Philosopher " << this->id << " is eating." << endl;
         syncro.setDining(true);
         usleep(50000);
-        syncro.releaseChopsticks(this->id);
+        if (this->coinToss() == 1)
+        {
+            syncro.releaseChopsticks(this->id);
+        }
         syncro.setDining(false);
     }
 };
 
-const string nameArray[] = {"Yoda", "Obi-Wan", "Rey", "Kanan", "Leia", "Luke", "Ahsoka",
-                            "Mace Windu", "Ezra", "Palpatine", "Anakin", "Kylo Ren", "Dooku",
-                            "Kit Fitso", "Luminara", "Plo Koon", "Revan", "Thrawn", "Zeb", "Sabine"};
+const string nameArray[] =
+    {"Yoda", "Obi-Wan", "Rey", "Kanan", "Leia", "Luke", "Ahsoka",
+     "Mace Windu", "Ezra", "Palpatine", "Anakin", "Kylo Ren", "Dooku",
+     "Kit Fitso", "Luminara", "Plo Koon", "Revan", "Thrawn", "Zeb", "Sabine"};
 
 void dine()
 {
