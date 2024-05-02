@@ -14,6 +14,7 @@ const int UNLOCKED = 0;
 const int LOCKED = 1;
 const int NUMBER_OF_PHILOSPHERS = 5;
 
+// Hi Luis, this is the dead lock version
 class Chopstick
 {
 private:
@@ -106,6 +107,7 @@ private:
     Chopstick *left, *right;
     thread philThread;
     mutex outputMutex;
+    Chopstick *left, *right;
     Syncro &syncro;
     double hungerTime;
 
