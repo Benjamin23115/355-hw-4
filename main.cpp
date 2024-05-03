@@ -8,10 +8,15 @@
 #include <time.h>
 
 using namespace std;
+using namespace std::chrono;
 
 const int UNLOCKED = 0;
 const int LOCKED = 1;
 const int NUMBER_OF_PHILOSPHERS = 5;
+
+const unsigned int twntyMin = 20 * 60 * 1000000;
+const unsigned int fiveMin = 5 * 60 * 1000000;
+const unsigned int oneMin = 1 * 60 * 1000000;
 
 class Chopstick
 {
@@ -168,31 +173,32 @@ public:
 
     void thinking()
     {
-        time_t start = time(0);
-        // cout << this->name << " " << this->id << ": is thinking." << endl;
+        auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << ": is thinking." << endl;
         usleep(500000);
         if (this->coinToss() == 1)
         {
             this->state = 1;
         }
-        this->thinkTime += this->thinkTime + difftime(time(0), start);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        this->thinkTime += duration.count();
     }
 
     void hungry()
     {
-        time_t start = time(0);
-        // cout << this->name << " " << this->id << ": is hungry." << endl;
+        auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << ": is hungry." << endl;
         if (coinToss())
         {
             syncro.getChopsticks(this->id);
             this->state = 2;
-            return;
         }
-        if (this->hungerTime > 1.0)
+        if (this->hungerTime > oneMin)
         {
             this->state = 3;
         }
-        this->hungerTime += this->hungerTime + difftime(time(0), start);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        this->hungerTime += duration.count();
     }
 
     int coinToss()
@@ -202,8 +208,7 @@ public:
 
     void eating()
     {
-        time_t start = time(0);
-        // cout << this->name << " " << this->id << " is eating." << endl;
+        auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << " is eating." << endl;
         usleep(500000);
         if (this->coinToss() == 1)
         {
@@ -211,11 +216,13 @@ public:
             // cout << this->name << " " << this->id << " has finished eating." << endl;
             this->state = 0;
         }
-        this->eatTime += this->eatTime + difftime(time(0), start);
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        this->eatTime += duration.count();
     }
     void getStats()
     {
-        cout << this->name << " " << this->id << " thought for: " << this->thinkTime << "milli-seconds" << endl;
+        cout << this->name << " " << this->id << " thought for: " << this->thinkTime << " milli-seconds" << endl;
         cout << this->name << " " << this->id << " was hungry for: " << this->hungerTime << " milli-Seconds" << endl;
         cout << this->name << " " << this->id << " Ate for: " << this->eatTime << " milli-Seconds" << endl;
     }
@@ -238,10 +245,8 @@ int main()
         philosophers[i] = new Philosopher(nameArray[i], *syncro, i, *chopsticks[i], *chopsticks[(i + 1) % NUMBER_OF_PHILOSPHERS]);
     }
 
-    unsigned int twntyMin = 20 * 60 * 1000000;
-
     syncro->setStatus(true);
-    usleep(twntyMin);
+    usleep(fiveMin);
 
     syncro->setStatus(false);
 
@@ -252,5 +257,6 @@ int main()
         delete (chopsticks[i]);
         delete (philosophers[i]);
     }
+    delete syncro;
     return 0;
 }
