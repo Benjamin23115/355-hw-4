@@ -175,10 +175,7 @@ public:
     {
         auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << ": is thinking." << endl;
         usleep(500000);
-        if (this->coinToss() == 1)
-        {
-            this->state = 1;
-        }
+        this->state = 1;
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(stop - start);
         this->thinkTime += duration.count();
@@ -187,11 +184,8 @@ public:
     void hungry()
     {
         auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << ": is hungry." << endl;
-        if (coinToss())
-        {
-            syncro.getChopsticks(this->id);
-            this->state = 2;
-        }
+        syncro.getChopsticks(this->id);
+        this->state = 2;
         if (this->hungerTime > oneMin)
         {
             this->state = 3;
@@ -210,12 +204,9 @@ public:
     {
         auto start = high_resolution_clock::now(); // cout << this->name << " " << this->id << " is eating." << endl;
         usleep(500000);
-        if (this->coinToss() == 1)
-        {
-            syncro.releaseChopsticks(this->id);
-            // cout << this->name << " " << this->id << " has finished eating." << endl;
-            this->state = 0;
-        }
+        syncro.releaseChopsticks(this->id);
+        // cout << this->name << " " << this->id << " has finished eating." << endl;
+        this->state = 0;
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(stop - start);
         this->eatTime += duration.count();
@@ -260,3 +251,4 @@ int main()
     delete syncro;
     return 0;
 }
+
